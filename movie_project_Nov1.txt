@@ -1,0 +1,289 @@
+#include <iostream>
+#include <fstream>
+#include <string>
+using namespace std; 
+
+
+struct node
+{
+		string movieName;
+		string genre;
+		string movieActors;
+		double stars;
+
+		node* next;
+
+		node(string a, string b, string c, double d, node* next1 = nullptr)
+		{
+			movieName = a;
+			genre = b;
+			movieActors = c;
+			stars = d;
+			next = next1; 
+		}
+};
+
+
+void dataInput(string);
+void dataReading(string, int);
+void LinearSearch(node*&, int); 
+void AddNode(string, string, string, double, node*&); 
+void InsertionSort(node*&);
+void print(node*&);
+
+
+int main()
+{
+	string directory;
+	cout << "the directory for me is : " << endl << "C:\\Users\\emtun\\OneDrive\\Desktop\\movie_test\\test.txt" << endl;
+	cout << "enter the directory using double forward slashes and no quotations:" << endl;
+	getline(cin, directory);
+
+	string file = directory;
+	int inputDirections = 0;
+
+	while (inputDirections != 3)
+	{
+		cout << "Enter 1 to enter a new movie, 2 to search for a movie, 3 to print the list, or 4 to quit: \n";
+		cin >> inputDirections;
+
+		switch (inputDirections)
+		{
+		case 1:
+			cout << " Movie Entry: \n" << endl;
+			dataInput(file);
+			break;
+		case 2:
+			cout << "Movie Search:\n" << endl;
+			dataReading(file, 1);
+			break;
+		case 3:
+			cout << "printing the list: " << endl;
+			dataReading(file, 2); 
+			break;
+		case 4:
+			cout << "Good Bye!\n";
+			return 0;
+			break;
+		default:
+			cout << "Wrong input try again:\n";
+		}
+	}
+}
+
+void dataInput(string s)
+{
+	ofstream file_writer;
+	file_writer.open(s, ios::app);
+
+	if (!file_writer.is_open())
+	{
+		cout << "Failed to open the file for writing." << endl;
+		return;
+	}
+	else
+	{
+		int input_numbers;
+
+		cout << "how many movies are you reviewing? \n";
+		cin >> input_numbers;
+		cin.ignore();
+		cout << "\n";
+
+		cout << "Enter your records \n";
+
+		for (int i = 1; i <= input_numbers; i++)
+		{
+			cout << "you are now entering info for movie " << i << " : " << endl;
+
+			cout << "enter the movie's name: \n";
+			string movieName;
+			getline(cin, movieName);
+			
+
+			cout << "enter the movie's genre: \n";
+			string genre;
+			getline(cin, genre);
+			
+			
+			cout << "enter any noticible actors \n";
+			string actors;
+			getline(cin, actors);
+
+
+			cout << "out of 5, how many stars would you rate the film: \n";
+			double stars;
+			cin >> stars;
+			cin.ignore(); 
+			
+
+			file_writer << movieName << endl;
+			file_writer << genre << endl;
+			file_writer << actors << endl;
+			file_writer << stars << endl;
+		}
+		file_writer.close();
+	}
+}
+
+void dataReading(string s, int direction) 
+{
+	//opens the file and takes what is written on the file and adds it to a linked list
+
+	int line_count = 0; //line counter
+	ifstream file_reader(s);
+
+	while (not file_reader.eof())
+	{
+		string input;
+		getline(file_reader, input);
+		line_count++; //running the file to get the lines
+	}
+	file_reader.close();
+	file_reader.clear();
+	file_reader.seekg(0);
+
+	node* head = nullptr;
+
+	file_reader.open(s);
+
+	for (int i = 0; i < line_count/4; i++)
+	{
+		string movieName, genre, actors;
+		double stars;
+
+		getline(file_reader, movieName);
+		getline(file_reader, genre);
+		getline(file_reader, actors);
+		file_reader >> stars;
+		
+		file_reader.ignore();
+
+		AddNode(movieName, genre, actors, stars, head);
+	}
+
+	if (direction == 1)
+	{
+		LinearSearch(head, line_count);
+	}
+	else
+	{
+		InsertionSort(head);
+	}
+		
+}
+
+void AddNode(string title, string genre, string actors, double stars, node*& head)
+{
+	if (head == nullptr)
+	{
+		head = new node(title, genre, actors, stars, head);
+	}
+
+	else
+	{
+		node* copy = head;
+
+		while (copy->next != nullptr) //for the current node, if the next node is not the last
+		{
+			copy = copy->next;  //move on the the next node
+		}
+		copy->next = new node(title, genre, actors, stars, nullptr);
+	}
+}
+
+
+void LinearSearch(node*& head, int size)
+{	
+	string search;
+	bool found = false;
+	node* current = head; 
+
+	cout << "enter the name of the movie ";
+	cin >> search;
+	cin.ignore();
+
+	while (current != nullptr && !found)
+	{
+		if (current->movieName == search)
+		{
+			cout << "movie's name: " << current->movieName << endl;
+			cout << "genre: " << current->genre << endl;
+			cout << "noticible actors include: " << current->movieActors << endl;
+			cout << "you rated it " << current->stars << " out of 5 stars" << endl;
+			found = true; 
+			break;
+		}
+		else
+		{
+			current = current->next;
+		}
+	}
+
+	if (found)
+		cout << "Finished.\n";
+	else
+		cout << "Not in this record.\n";
+
+}
+
+void InsertionSort(node*& head)
+{
+	if (head == nullptr || head->next == nullptr) 
+	{
+		
+		return;
+	}
+
+	node* sorted = nullptr;  
+	node* current = head;
+
+	while (current != nullptr) 
+	{
+		node* next = current->next;
+
+		if (sorted == nullptr || current->stars >= sorted->stars) //sorting from greatest to smallest 
+		{
+			current->next = sorted;
+			sorted = current;
+		}
+		else 
+		{
+			node* currentSorted = sorted;
+			while (currentSorted->next != nullptr && current->stars < currentSorted->next->stars) 
+			{
+				currentSorted = currentSorted->next;
+			}
+
+			current->next = currentSorted->next;
+			currentSorted->next = current;
+		}
+		current = next;
+	}
+	head = sorted;
+
+	print(head);
+}
+
+void print(node*& head)
+{
+	cout << endl << " in order of star ratings : " << endl;
+
+	node* copy = head;
+
+	if (copy == nullptr)
+		cout << "empty file" << endl;
+	else
+	{
+		while (copy)
+		{
+			cout << "name: " << copy->movieName << endl;
+			cout << "genre: " << copy->genre << endl;
+			cout << "actors: " << copy->movieActors << endl;
+			cout << "stars: " << copy->stars << endl;
+			cout << endl; 
+			copy = copy->next;
+		}
+		
+	}
+}
